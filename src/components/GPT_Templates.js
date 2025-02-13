@@ -78,15 +78,17 @@ function showFormulaGenerateDialog(data, designer){
 
             description = description.replaceAll("```", "").replaceAll('"""').replaceAll("\n", "");
             let loading = ElLoading.service({ lock: true, text: "Loading", background: "rgba(0, 0, 0, 0.7)"});
-            const response = openai.createCompletion({
-                model: "text-davinci-003",
-                prompt: '按要求帮我写一个Excel公式，如果要求和生成公式无关，返回“描述不合理”。\n要求：\n```\n'+ description + '\n```',
-                max_tokens: 200,
-                temperature: 0.5
+            const response = openai.chat.completions.create({
+                // model: "deepseek-r1-distill-qwen-7b",
+                model: "qwen-plus",
+                messages: [
+                    { role: "system", content: "You are a helpful assistant." },
+                    { role: "user", content: '按要求帮我写一个Excel公式，如果要求和生成公式无关，返回“描述不合理”。\n要求：\n```\n'+ description + '\n```' }
+                ],
             });
             response.then(function(completion){
                 loading.close();
-                let formula = completion.data.choices[0].text.trim();
+                let formula = completion.choices[0].message.content.trim();
                 bindingData.formula = formula;
                 if(formula.indexOf("=") === 0){
                     bindingData.canInsert = true;
@@ -189,7 +191,8 @@ ${headerList}
 ${bindingData.description}
 ---`
             }];
-        let functions = [{
+        let functions = [{"type": "function", 
+            "function":{
             "name": "pivot_talbe_analyze",
             "description": "对数据创建数据透视表，返回数据透视表结果",
             "parameters": {
@@ -208,18 +211,21 @@ ${bindingData.description}
                         "description": "值字段名称"
                     },
                 },
+                "required": ["rowFieldName", "dataFieldName"]
             },
-            "required": ["rowFieldName", "dataFieldName"]
-        }]
+            "strict": true
+        }}]
         try {
-            var completion = await openai.createChatCompletion({
-                "model": "gpt-3.5-turbo-0613",
+            var completion = await openai.chat.completions.create({
+                "model": "qwen-plus",
                 "messages": messages,
-                "functions": functions,
+                "tools": functions,
                 "function_call": {"name": "pivot_talbe_analyze"}
             });
-            if(completion.data.choices[0].message.function_call){
-                let args = JSON.parse(completion.data.choices[0].message.function_call.arguments);
+
+    console.log(JSON.stringify(completion));
+            if(completion.choices[0].message.tool_calls){
+                let args = JSON.parse(completion.choices[0].message.tool_calls[0].function.arguments);
                 spread.suspendPaint();
                 let activeSheetIndex = spread.getActiveSheetIndex();
                 spread.addSheet(activeSheetIndex);

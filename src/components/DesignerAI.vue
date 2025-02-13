@@ -70,13 +70,13 @@ export default defineComponent({
         }
       }, 100)
       try{
-        const completion = await openai.createChatCompletion({
-          model: "gpt-3.5-turbo",
+        const completion = await openai.chat.completions.create({
+          model: "qwen-plus",
           messages: this.chatHistory,
         });
         this.chatHistory.push({
           role: "assistant",
-          content: completion.data.choices[0].message!.content,
+          content: completion.choices[0].message!.content,
         })
         console.log(completion);
         setTimeout(() => {

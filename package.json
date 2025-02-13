@@ -27,7 +27,7 @@
     "@grapecity/spread-sheets-tablesheet": "16.1.0",
     "@grapecity/spread-sheets-vue": "16.1.0",
     "element-plus": "^2.3.5",
-    "openai": "^3.2.1",
+    "openai": "^4.83.0",
     "vue": "^3.3.2"
   },
   "devDependencies": {

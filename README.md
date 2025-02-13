@@ -3,11 +3,9 @@
 This is a demo that SpreadJS working with ChatGPT by Vue 3 in Vite.
 Main project is TypeScript, but deisnger config is JavaScript which is easier for more users copy the code.
 
-## ChatGPT setup
+## DeepSeek setup
 
-Please add your ChatGPT apiKey in ./src/components/openai.ts file.
-This is just a demo, for security reasons, openai api should be called on the backend.
-Don't public your apiKey.
+需要设置自己的DeepSeek链接和apiKey
 
 ## Customize configuration
 

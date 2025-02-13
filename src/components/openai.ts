@@ -1,9 +1,15 @@
+import OpenAI from "openai";
 
-import {Configuration, OpenAIApi} from "openai"
+const openai = new OpenAI(
+    {
+        apiKey: "",
+        baseURL: "https://dashscope.aliyuncs.com/compatible-mode/v1",
+        dangerouslyAllowBrowser: true
+    }
+);
 
-const configuration = new Configuration({
-  apiKey: "sk-",
-});
-const openai = new OpenAIApi(configuration);
+const modelInfo = {
+    model: "deepseek-r1-distill-qwen-7b",
+}
 
-export { openai };
+export { openai, modelInfo };

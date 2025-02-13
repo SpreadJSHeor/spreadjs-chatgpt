@@ -1,37 +1,41 @@
 import * as GC from "@grapecity/spread-sheets";
 
-import {openai} from './openai'
+import {openai, modelInfo} from './openai'
 
-var GPT_Query = function () {};
-GPT_Query.prototype = new GC.Spread.CalcEngine.Functions.AsyncFunction('GPT.QUERY', 1, 1,  {
-        description: "向GPT提问，直接返回结果",
-        parameters: [
-            {
-                name: "问题"
-            }]});
-GPT_Query.prototype.defaultValue = function () { return 'Loading...'; };
-GPT_Query.prototype.evaluateAsync = function (context, arg) {
+var DeepSeek_Query = function () { };
+DeepSeek_Query.prototype = new GC.Spread.CalcEngine.Functions.AsyncFunction('DeepSeek.QUERY', 1, 1, {
+    description: "向GPT提问，直接返回结果",
+    parameters: [
+        {
+            name: "问题"
+        }]
+});
+DeepSeek_Query.prototype.defaultValue = function () { return 'Loading...'; };
+DeepSeek_Query.prototype.evaluateAsync = function (context, arg) {
     if (!arg) {
         return GC.Spread.CalcEngine.Errors.NotAvailable;
     }
 
-    const response = openai.createCompletion({
-        model: "text-davinci-003",
-        prompt: arg + "？只返回结果。",
-        max_tokens: 100,
-        temperature: 0.5
+    const response = openai.chat.completions.create({
+        // model: "deepseek-r1-distill-qwen-7b",
+        model: modelInfo.model,
+        messages: [
+            { role: "system", content: "You are a helpful excel assistant. " },
+            { role: "user", content: arg + "，？只返回结果。" }
+        ],
     });
-    response.then(function(completion){
-        context.setAsyncResult(completion.data.choices[0].text.trim());
-    })
+    response.then(function (completion) {
+        let desc = completion.choices[0].message.content;
+        context.setAsyncResult(desc);
+    });
 };
-GC.Spread.CalcEngine.Functions.defineGlobalCustomFunction("GPT.QUERY", new GPT_Query());
+GC.Spread.CalcEngine.Functions.defineGlobalCustomFunction("DeepSeek.QUERY", new DeepSeek_Query());
 
 
 
 
 var GPT_Filter = function () {};
-GPT_Filter.prototype = new GC.Spread.CalcEngine.Functions.AsyncFunction('GPT.FILTER', 2, 2,  {
+GPT_Filter.prototype = new GC.Spread.CalcEngine.Functions.AsyncFunction('DeepSeek.FILTER', 2, 2,  {
         description: "对选择的数据区域做描述行的过滤",
         parameters: [
             {
@@ -72,14 +76,14 @@ GPT_Filter.prototype.evaluateAsync = function (context, range, desc) {
         "messages": messages,
     });
     response.then(function(completion){
-        let text = completion.data.choices[0].message.content.trim();
+        let text = completion.choices[0].message.content.trim();
         // text = text[0] === "[" ? text : text.substring(text.indexOf("["));
         let array = JSON.parse(text)
         context.setAsyncResult(new GC.Spread.CalcEngine.CalcArray(array));
     })
     /* 
-    const response = openai.createCompletion({
-        model: "text-davinci-003",
+    const response = openai.chat.completions.create({
+        model: modelInfo.model,
         prompt: '按照如下步骤处理数据：\n' 
         + '1. 按照处理要求对JSON数据进行处理，\n' 
         + '2. 格式化你的回复为JSON数组，数组符合JSON schema { "type": "array", "items": { "type": "array", "items": { "type": ["string", "number"] } } } 。\n'
@@ -104,13 +108,13 @@ GPT_Filter.prototype.evaluateAsync = function (context, range, desc) {
 };
 
 
-GC.Spread.CalcEngine.Functions.defineGlobalCustomFunction("GPT.FILTER", new GPT_Filter());
+GC.Spread.CalcEngine.Functions.defineGlobalCustomFunction("DeepSeek.FILTER", new GPT_Filter());
 
 
 
 
 var GPT_Translate = function () {};
-GPT_Translate.prototype = new GC.Spread.CalcEngine.Functions.AsyncFunction('GPT.Translate', 2, 2,  {
+GPT_Translate.prototype = new GC.Spread.CalcEngine.Functions.AsyncFunction('DeepSeek.Translate', 2, 2,  {
         description: "对选择的内容按要求的语言翻译",
         parameters: [
             {
@@ -151,7 +155,7 @@ GPT_Translate.prototype.evaluateAsync = function (context, range, desc) {
         "messages": messages,
     });
     response.then(function(completion){
-        let text = completion.data.choices[0].message.content.trim();
+        let text = completion.choices[0].message.content.trim();
         // text = text[0] === "[" ? text : text.substring(text.indexOf("["));
         if(text[0] === "[" && text[text.length - 1] === "]"){
             let array = JSON.parse(text)
@@ -163,4 +167,4 @@ GPT_Translate.prototype.evaluateAsync = function (context, range, desc) {
     })
 };
 
-GC.Spread.CalcEngine.Functions.defineGlobalCustomFunction("GPT.Translate", new GPT_Translate());
+GC.Spread.CalcEngine.Functions.defineGlobalCustomFunction("DeepSeek.Translate", new GPT_Translate());
