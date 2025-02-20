@@ -71,15 +71,21 @@ GPT_Filter.prototype.evaluateAsync = function (context, range, desc) {
         { "role": "user", "content": `${delimiter}${desc}${delimiter}`
     }];
 
-    let response = openai.createChatCompletion({
-        "model": "gpt-3.5-turbo-0613",
+    let response = openai.chat.completions.create({
+        model: modelInfo.model,
         "messages": messages,
     });
     response.then(function(completion){
         let text = completion.choices[0].message.content.trim();
+        console.log(text)
         // text = text[0] === "[" ? text : text.substring(text.indexOf("["));
-        let array = JSON.parse(text)
-        context.setAsyncResult(new GC.Spread.CalcEngine.CalcArray(array));
+        try{
+            let array = JSON.parse(text)
+            context.setAsyncResult(new GC.Spread.CalcEngine.CalcArray(array));
+        }
+        catch(e){
+            context.setAsyncResult("失败");
+        };
     })
     /* 
     const response = openai.chat.completions.create({
@@ -150,12 +156,13 @@ GPT_Translate.prototype.evaluateAsync = function (context, range, desc) {
         { "role": "user", "content": `${delimiter}${desc}${delimiter}`
     }];
 
-    let response = openai.createChatCompletion({
-        "model": "gpt-3.5-turbo-0613",
+    let response = openai.chat.completions.create({
+        "model": modelInfo.model,
         "messages": messages,
     });
     response.then(function(completion){
         let text = completion.choices[0].message.content.trim();
+        console.log(text)
         // text = text[0] === "[" ? text : text.substring(text.indexOf("["));
         if(text[0] === "[" && text[text.length - 1] === "]"){
             let array = JSON.parse(text)

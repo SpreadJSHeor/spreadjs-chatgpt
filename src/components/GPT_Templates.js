@@ -240,6 +240,9 @@ ${bindingData.description}
 
                 spread.resumePaint();
             }
+            else if(completion.choices[0].message.content){
+                GC.Spread.Sheets.Designer.showMessageBox(completion.choices[0].message.content.trim(), "提示", GC.Spread.Sheets.Designer.MessageBoxIcon.info);
+            }
         }
         catch(err){
             console.log(err)
